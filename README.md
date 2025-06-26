@@ -8,4 +8,8 @@ Production-hardened extensions for Go's standard library with zero dependencies
 
 ## xlog
 
-### rlog
+## xlog/rlog
+
+## xterm
+
+## xterm/prompt
