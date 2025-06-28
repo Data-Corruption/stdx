@@ -177,6 +177,14 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 	}, nil
 }
 
+// Addr returns the address the server is listening on.
+func (s *Server) Addr() string {
+	if s.cfg == nil {
+		return ""
+	}
+	return s.cfg.Addr
+}
+
 // Listen starts the server and blocks until it is shut down or an error occurs.
 func (s *Server) Listen() error {
 	// setup chans for listen and shutdown signals
