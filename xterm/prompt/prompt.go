@@ -1,4 +1,5 @@
 // Package prompt provides functions to interactively prompt the user for input in a terminal.
+// Logic lives in *R funcs for easy testing.
 package prompt
 
 import (
@@ -10,80 +11,79 @@ import (
 	"strings"
 )
 
-// Int prompts the user for an integer input.
-// It re-prompts until a valid integer is entered.
-// Returns 0 and prints an error message if reading fails (e.g., EOF).
-func Int(prompt string) int {
-	reader := bufio.NewReader(os.Stdin)
-	fullPrompt := fmt.Sprintf("%s: ", prompt) // Add consistent suffix
+// exported
 
+// Int prompts the user until a valid integer is entered or error occurs.
+func Int(p string) (int, error) { return intR(os.Stdin, p) }
+
+// Uint prompts the user until a valid unsigned integer is entered or error occurs.
+func Uint(p string) (uint, error) { return uintR(os.Stdin, p) }
+
+// String prompts the user until a string is entered or error occurs.
+func String(p string) (string, error) { return stringR(os.Stdin, p) }
+
+// YesNo asks a yes/no question to the user until a (y/n) response is given or an error occurs.
+func YesNo(p string) (bool, error) { return yesNoR(os.Stdin, p) }
+
+// internal
+
+func intR(r io.Reader, prompt string) (int, error) {
+	reader := bufio.NewReader(r)
+	fullPrompt := fmt.Sprintf("%s: ", prompt)
+	// loop until valid input is received
 	for {
 		fmt.Print(fullPrompt)
 		input, err := readLine(reader)
-		if err != nil {
-			// Handle read errors, print message and return 0
-			// Don't print error for EOF, just a newline if possible
-			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, "\nError reading input: %v\n", err)
-			} else {
-				fmt.Println() // Ensure newline after EOF in terminal
-			}
-			return 0
+		if err != nil && err != io.EOF {
+			return 0, fmt.Errorf("error reading input: %w", err)
 		}
-
-		// Attempt to parse the integer
+		if err == io.EOF && input == "" {
+			fmt.Println("No input provided. Please enter a valid integer.")
+			continue
+		}
+		// attempt to parse input
 		val, err := strconv.Atoi(input)
 		if err != nil {
 			fmt.Println("Invalid input. Please enter a valid integer.")
-			continue // Re-prompt
+			continue
 		}
-		return val // Success
+		return val, nil
 	}
 }
 
-// Uint prompts the user for a non-negative integer input.
-// It re-prompts until a valid unsigned integer is entered.
-// Returns 0 and prints an error message if reading fails (e.g., EOF).
-func Uint(prompt string) uint {
-	reader := bufio.NewReader(os.Stdin)
-	fullPrompt := fmt.Sprintf("%s: ", prompt) // Add consistent suffix
-
+func uintR(r io.Reader, prompt string) (uint, error) {
+	reader := bufio.NewReader(r)
+	fullPrompt := fmt.Sprintf("%s: ", prompt)
+	// loop until valid input is received
 	for {
 		fmt.Print(fullPrompt)
 		input, err := readLine(reader)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, "\nError reading input: %v\n", err)
-			} else {
-				fmt.Println()
-			}
-			return 0
+		if err != nil && err != io.EOF {
+			return 0, fmt.Errorf("error reading input: %w", err)
 		}
-
-		// Attempt to parse the unsigned integer (base 10, default bit size)
-		// Use ParseInt and check range to handle negative sign explicitly if needed,
-		// or ParseUint directly which handles the negative sign as an error.
-		val, err := strconv.ParseUint(input, 10, 0) // Use base 10, bit size 0 for native uint
+		if err == io.EOF && input == "" {
+			fmt.Println("No input provided. Please enter a valid non-negative integer.")
+			continue
+		}
+		// attempt to parse the input
+		val, err := strconv.ParseUint(input, 10, 0) // input, base 10, 0 (native uint)
 		if err != nil {
 			fmt.Println("Invalid input. Please enter a valid non-negative integer.")
-			continue // Re-prompt
+			continue // re-prompt
 		}
-		return uint(val) // Success (convert from uint64 if necessary)
+		return uint(val), nil
 	}
 }
 
-// String prompts the user for a string input.
-// Returns the trimmed string. Returns empty string on read error.
-func String(prompt string) (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("%s: ", prompt) // Add consistent suffix
-
+func stringR(r io.Reader, prompt string) (string, error) {
+	reader := bufio.NewReader(r)
+	fmt.Printf("%s: ", prompt)
+	// receive input
 	input, err := readLine(reader)
 	if err != nil && err != io.EOF {
-		fmt.Fprintf(os.Stderr, "\nError reading input: %v\n", err)
-		return "", err // Return error if not EOF
+		return "", fmt.Errorf("error reading input: %w", err)
 	}
-	// Also return empty string on EOF if nothing was read before it
+	// handle empty input
 	if err == io.EOF && input == "" {
 		fmt.Println()
 		return "", nil
@@ -91,36 +91,24 @@ func String(prompt string) (string, error) {
 	return input, nil
 }
 
-// YesNo asks a yes/no question to the user.
-// It accepts "y", "yes", "n", "no" (case-insensitive).
-// Re-prompts on invalid input.
-// Returns false on read error (e.g., EOF) or if the user enters "n" or "no".
-func YesNo(prompt string) bool {
-	reader := bufio.NewReader(os.Stdin)
+func yesNoR(r io.Reader, prompt string) (bool, error) {
+	reader := bufio.NewReader(r)
 	fullPrompt := fmt.Sprintf("%s (y/n): ", prompt)
-
+	// loop until valid input is received
 	for {
 		fmt.Print(fullPrompt)
 		input, err := readLine(reader)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, "\nError reading input: %v\n", err)
-			} else {
-				fmt.Println()
-			}
-			return false // Default to 'no' on read error
+		if err != nil && err != io.EOF {
+			return false, fmt.Errorf("error reading input: %w", err)
 		}
-
-		inputLower := strings.ToLower(input)
-
-		switch inputLower {
+		// handle input
+		switch strings.ToLower(input) {
 		case "y", "yes":
-			return true
+			return true, nil
 		case "n", "no":
-			return false
+			return false, nil
 		default:
-			fmt.Println("Invalid input. Please enter 'y', 'yes', 'n', or 'no'.")
-			// Loop again to re-prompt
+			fmt.Println("Invalid input. Please enter one of: 'y', 'yes', 'n', or 'no'.")
 		}
 	}
 }
