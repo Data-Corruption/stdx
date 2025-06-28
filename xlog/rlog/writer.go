@@ -83,6 +83,7 @@ type Writer struct {
 	file   *os.File
 	// closeAgeTrigger is a channel used to clean up the age-triggered flush goroutine.
 	closeAgeTrigger chan struct{}
+	wg              sync.WaitGroup
 }
 
 // NewWriter creates and initializes a new [Writer] for the specified directory.
@@ -123,8 +124,11 @@ func NewWriter(cfg Config) (*Writer, error) {
 	// start goroutine for age triggered flushes
 	d := writer.cfg.MaxBufAge
 	if d > 0 {
-		writer.closeAgeTrigger = make(chan struct{})
-		go func() {
+		stop := make(chan struct{}) // chan nonsense to avoid a datarace
+		writer.closeAgeTrigger = stop
+		writer.wg.Add(1)
+		go func(done <-chan struct{}) { // receive-only
+			defer writer.wg.Done()
 			ticker := time.NewTicker(d)
 			defer ticker.Stop()
 			for {
@@ -133,11 +137,11 @@ func NewWriter(cfg Config) (*Writer, error) {
 					if err := writer.Flush(); err != nil {
 						return
 					}
-				case <-writer.closeAgeTrigger:
+				case <-done:
 					return
 				}
 			}
-		}()
+		}(stop)
 	}
 
 	return writer, nil
@@ -227,14 +231,13 @@ func (w *Writer) Close() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	if w.closeAgeTrigger != nil {
-		close(w.closeAgeTrigger)
-		w.closeAgeTrigger = nil
-	}
-
 	if w.err != nil || w.file == nil {
 		return w.err
 	}
+	if c := w.closeAgeTrigger; c != nil {
+		close(c)
+	}
+	w.wg.Wait()
 	if err := w.flush(); err != nil {
 		return err
 	}

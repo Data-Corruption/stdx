@@ -1,0 +1,67 @@
+name: Test and Tag
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  parse-changelog:
+    runs-on: ubuntu-latest
+    outputs:
+      should_tag:  ${{ steps.check_version.outputs.should_tag }}
+      version:     ${{ steps.check_version.outputs.version }}
+      description: ${{ steps.check_version.outputs.description }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Extract Version and Description from CHANGELOG.md
+        id: check_version
+        run: |
+          set -euo pipefail
+          # Extract version and description
+          VERSION=$(sed -n 's/^## \[\(.*\)\] - .*/\1/p' CHANGELOG.md | head -n 1)
+          [ -z "$VERSION" ] && { echo "No version found in CHANGELOG.md"; exit 1; }
+          DESCRIPTION=$(awk '/^## \['"$VERSION"'\]/ {flag=1; next} /^## \[/ {flag=0} flag {print}' CHANGELOG.md)
+          # Escape newlines in the description, otherwise actions will freak out
+          DESCRIPTION_ESCAPED=$(echo "$DESCRIPTION" | sed ':a;N;$!ba;s/\n/\\n/g')
+
+          echo "VERSION: $VERSION"
+          echo "DESCRIPTION: $DESCRIPTION_ESCAPED"
+
+          # Check if the version is already tagged
+          if git tag -l "$VERSION" | grep -q "$VERSION"; then
+            echo "Version $VERSION is already tagged."
+            echo "should_tag=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_tag=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "description=$DESCRIPTION_ESCAPED" >> $GITHUB_OUTPUT
+          fi
+
+  test-and-tag:
+    needs: parse-changelog
+    if: needs.parse-changelog.outputs.should_tag == 'true'   # skip if the tag already exists
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-go@v4
+        with: { go-version-file: 'go.mod' }
+
+      - name: Run unit tests
+        run: go test -race ./...
+
+      - name: Create and push tag
+        env:
+          VERSION:      ${{ needs.parse-changelog.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git tag -a "${VERSION}" -m "${DESCRIPTION}"
+          git push origin "${VERSION}"
