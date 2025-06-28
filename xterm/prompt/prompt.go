@@ -1,5 +1,10 @@
-// Package prompt provides functions to interactively prompt the user for input in a terminal.
-// Logic lives in *R funcs for easy testing.
+// Package prompt provides functions for asking interactive questions in the terminal.
+//
+// Available functions:
+//   - [Int]    Re-prompts until the user enters any signed integer.
+//   - [Uint]   Re-prompts until the user enters a non-negative integer.
+//   - [String] Reads a single line of text (empty string allowed).
+//   - [YesNo]  Asks a yes/no question; returns true when the answer is “yes”.
 package prompt
 
 import (

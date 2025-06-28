@@ -25,7 +25,13 @@ func (e *Err) Unwrap() error { return e.Err }
 // Error logs the error and sends an http response. If the error is an [Err], it sends the given
 // message and status code. Otherwise, it sends a generic "Internal server error" and 500 status code.
 func Error(ctx context.Context, w http.ResponseWriter, err error) {
-	xlog.Error(ctx, err.Error())
+	// get logger from context
+	logger := xlog.FromContext(ctx)
+	if logger == nil { // fallback to console
+		fmt.Print(err.Error())
+	} else {
+		logger.Error(err.Error())
+	}
 	var e *Err
 	if errors.As(err, &e) {
 		http.Error(w, e.Msg, e.Code)
