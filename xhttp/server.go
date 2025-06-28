@@ -69,6 +69,7 @@ const (
 	DefaultAfterListenDelay = 1 * time.Second
 )
 
+// ServerConfig holds configuration options for [Server].
 type ServerConfig struct {
 	Addr string // Address to listen on (e.g. ":8080"). Default is ":80", ":443" if UseTLS is true.
 
@@ -110,11 +111,13 @@ type ServerConfig struct {
 	OnShutdown func()
 }
 
+// Server wraps [http.Server] with graceful shutdown, lifecycle hooks, and sensible defaults.
 type Server struct {
 	cfg    *ServerConfig // Configuration for the server
 	server *http.Server  // The http or https server
 }
 
+// NewServer creates a new Server instance with the provided configuration.
 func NewServer(cfg *ServerConfig) (*Server, error) {
 	copy := *cfg
 
@@ -174,6 +177,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 	}, nil
 }
 
+// Listen starts the server and blocks until it is shut down or an error occurs.
 func (s *Server) Listen() error {
 	// setup chans for listen and shutdown signals
 	listenErrCh := make(chan error, 1)

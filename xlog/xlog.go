@@ -90,7 +90,7 @@ func New(dirPath string, level string) (*Logger, error) {
 	}
 	var writer *rlog.Writer
 	var err error
-	if writer, err = rlog.New(dirPath, rlog.WithSync()); err != nil {
+	if writer, err = rlog.NewWriter(rlog.Config{DirPath: dirPath}); err != nil {
 		return nil, fmt.Errorf("failed to initialize rlog writer in directory '%s': %w", dirPath, err)
 	}
 	pid := os.Getpid()
@@ -111,6 +111,18 @@ func (l *Logger) isLevelEnabled(level int) bool {
 		return false
 	}
 	return l.level.Load() <= uint32(level)
+}
+
+// Writer returns a pointer to the underlying rlog.Writer.
+// Useful for injecting other data into the log stream, manual flushes,
+// or checking health via Logger.Writer().Error()
+func (l *Logger) Writer() *rlog.Writer {
+	l.closeMu.Lock()
+	defer l.closeMu.Unlock()
+	if l.IsClosed() {
+		return nil
+	}
+	return l.writer
 }
 
 func (l *Logger) Debug(v ...interface{}) {
