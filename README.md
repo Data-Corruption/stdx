@@ -33,9 +33,7 @@ Package xhttp provides extensions to the standard net/http package for productio
 package main
 
 import (
-  "context"
   "errors"
-  "fmt"
   "log"
   "math/rand"
   "net/http"
@@ -45,20 +43,29 @@ import (
 )
 
 func main() {
-  // Seed rand for the demo error path.
-  rand.Seed(time.Now().UnixNano())
+  // Create router
+  mux := http.NewServeMux()
+  mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    if err := riskyOperation(); err != nil {
+      // Logs then sends either the safe message or "Internal Server Error" if
+      // not an xhttp.Err. Will also use xlog Logger if present in context
+      xhttp.Error(r.Context(), w, err)
+      return
+    }
+    w.Write([]byte("OK\n"))
+  })
 
-  // Build the server with sensible defaults for localhost testing.
-  srv, err := xhttp.NewServer(&xhttp.ServerConfig{
+  // Create server
+  var srv *xhttp.Server
+  var err error
+  srv, err = xhttp.NewServer(&xhttp.ServerConfig{
     Addr:    ":8080",
-    Handler: rootHandler(),
-    // AfterListen runs once the listener is up; useful for readiness probes.
+    Handler: mux,
     AfterListen: func() {
-      log.Println("server is ready and listening on", srv.Addr())
+      log.Printf("server is ready and listening on http://localhost%s", srv.Addr())
     },
-    // Shutdown callback.
     OnShutdown: func() {
-      log.Println("shutting down, cleaning up resources …")
+      log.Println("shutting down, cleaning up resources ...")
     },
     // See xhttp.ServerConfig for all options and defaults.
   })
@@ -67,35 +74,22 @@ func main() {
   }
 
   // Start serving (blocks until exit signal or error).
-  log.Fatal(srv.Listen())
-}
-
-// rootHandler returns an http.Handler that uses xhttp.Error for responses.
-func rootHandler() http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    if err := riskyOperation(); err != nil {
-      // Logs then sends either the safe message or "Internal Server Error" if
-      // not an xhttp.Err. Will also use xlog Logger if present in context
-      xhttp.Error(r.Context(), w, err)
-      return
-    }
-
-    fmt.Printf(w, "Hello, stdx!")
-  })
+  if err := srv.Listen(); err != nil {
+    log.Printf("server stopped with error: %v", err)
+  } else {
+    log.Println("server stopped gracefully")
+  }
 }
 
 // riskyOperation simulates work that can fail.
 func riskyOperation() error {
   if rand.Intn(2) == 0 {
-    // Wrap the low‑level error with an xhttp.Err so callers get both
-    // the public message and the root cause.
     return &xhttp.Err{
       Code: http.StatusInternalServerError,
       Msg:  "Something went wrong, please try again later", // safe for clients
       Err:  errors.New("simulated failure"),                // internal detail
     }
   }
-  // Pretend work succeeds.
   time.Sleep(100 * time.Millisecond)
   return nil
 }

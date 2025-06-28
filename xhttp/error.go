@@ -17,7 +17,7 @@ type Err struct {
 }
 
 func (e *Err) Error() string {
-	return fmt.Sprintf(`HTTP error:\n\tstatus: %d\n\tmessage: %s\n\tunderlying: %s`, e.Code, e.Msg, e.Err)
+	return fmt.Sprintf(`HTTP error: status: %d message: "%s" underlying: %s`, e.Code, e.Msg, e.Err)
 }
 
 func (e *Err) Unwrap() error { return e.Err }
@@ -28,7 +28,7 @@ func Error(ctx context.Context, w http.ResponseWriter, err error) {
 	// get logger from context
 	logger := xlog.FromContext(ctx)
 	if logger == nil { // fallback to console
-		fmt.Print(err.Error())
+		fmt.Println(err.Error())
 	} else {
 		logger.Error(err.Error())
 	}
