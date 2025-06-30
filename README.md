@@ -1,18 +1,32 @@
 # stdx
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Data-Corruption/stdx.svg)](https://pkg.go.dev/github.com/Data-Corruption/stdx)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Data-Corruption/stdx)](https://goreportcard.com/report/github.com/Data-Corruption/stdx)
+![License](https://img.shields.io/github/license/Data-Corruption/stdx)
+[![Release](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml/badge.svg)](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml)
 
-Production-hardened extensions for Go's standard library with zero dependencies
+## Overview
+
+Production-hardened extensions for Go's standard library with zero dependencies. Built with a bias toward CLI tools doing web-adjacent work (standalone apps, APIs, wrappers, etc). It's the result from building many small, durable CLI apps. Just enough structure to ship fast, fail loudly, and stay maintainable under pressure. No dependencies. No magic. Just practical helpers that survive real use.
+
+- [`xhttp`](#xhttp): Production-ready HTTP server helpers
+- [`xlog`](#xlog): Structured leveled logging
+- [`xlog/rlog`](#xlogrlog): Buffered writer with rotation
+- [`xterm/prompt`](#xtermprompt): Interactive terminal prompts
+
+## Installation
 
 ```bash
 go get github.com/Data-Corruption/stdx
 ```
 
-## xhttp
+<br>
+
+### xhttp
 
 Package xhttp provides extensions to the standard net/http package for production-ready HTTP server functionality.
 
-### Features
+#### Features
 
 - **`Server`**  
   A wrapper around `http.Server` that provides:
@@ -24,9 +38,9 @@ Package xhttp provides extensions to the standard net/http package for productio
 - **`Error(ctx context.Context, w http.ResponseWriter, err error)`**  
   A function to handle errors in HTTP handlers, logging them and sending appropriate HTTP responses. A drop-in replacement for `http.Error` that works with the `xlog` logger in the context if present.
 
-### Quick example
+#### Quick example
 
-```golang
+```go
 // Visit http://localhost:8080 to see a success response or, ~50% of the time,
 // an internal error handled by xhttp.Error. Press Ctrl‑C to trigger a graceful
 // shutdown.
@@ -95,18 +109,20 @@ func riskyOperation() error {
 }
 ```
 
-## xlog
+<br>
+
+### xlog
 
 Package xlog provides a leveled, concurrent-safe logger with buffered rotation for logging.
 
-### Features
+#### Features
 
 - **`Logger`**  
   A leveled logger that supports dynamic log level changes, custom formatting, and safe shutdown. Internally uses Writer from `xlog/rlog`.
 
-### Quick example
+#### Quick example
 
-```golang
+```go
 package main
 
 import (
@@ -143,18 +159,20 @@ Notes:
 - Log levels can be dynamically changed at runtime.
 - Internal log.Logger flags can be customized using `SetFlags(debugFlag, stdFlag int)` on `xlog.Logger`. Offers different flags for when the log level is set to debug or not.
 
-## xlog/rlog
+<br>
+
+### xlog/rlog
 
 Package rlog provides a small buffered writer with rotation for logging.
 
-### Features
+#### Features
 
 - **`Writer`**  
   Provides buffered, size-based log rotation with optional age-based flushing for long running services that want durable logs.
 
-### Quick example
+#### Quick example
 
-```golang
+```go
 package main
 
 import (
@@ -188,11 +206,13 @@ Notes & Limitations:
 - Rotation renames the active file to a timestamped `<ts>.log` and re-creates `latest.log` atomically. A lightweight file-lock prevents concurrent rotations across processes.
 - Only a single rlog.Writer should be used per directory per process; multiple processes may safely share the same directory.
 
-## xterm/prompt
+<br>
+
+### xterm/prompt
 
 Package `prompt` provides functions for asking interactive questions in the terminal.
 
-### Features
+#### Features
 
 - **`Int(prompt string) (int, error)`**  
   Re-prompts until the user enters any signed integer.
@@ -206,7 +226,7 @@ Package `prompt` provides functions for asking interactive questions in the term
 - **`YesNo(prompt string) (bool, error)`**  
   Asks a *yes / no* question; returns `true` for “yes”.
 
-### Quick example
+#### Quick example
 
 ```go
 package main
