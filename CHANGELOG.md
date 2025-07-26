@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.2.0] - 2025-07-26
+
+Added:
+
+- Shutdown func to server in httpx.
+
 ## [v0.1.0] - 2025-06-30
 
 Project is now at version 0.1.0, marking a stable initial release. API still subject to change, but the core functionality is solid and ready for production use.

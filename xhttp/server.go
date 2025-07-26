@@ -238,3 +238,21 @@ func (s *Server) Listen() error {
 		}
 	}
 }
+
+// Shutdown gracefully stops the server.
+//
+// Thread-safe, can be called from any goroutine.
+// Uses the provided context to control cancellation and deadlines.
+// If the context is nil, it defaults to [ServerConfig.ShutdownTimeout].
+func (s *Server) Shutdown(ctx context.Context) error {
+	if ctx == nil {
+		if s.cfg.ShutdownTimeout <= 0 {
+			return s.server.Close()
+		}
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
+		defer cancel()
+	}
+
+	return s.server.Shutdown(ctx)
+}
