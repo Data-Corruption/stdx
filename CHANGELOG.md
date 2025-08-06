@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.0] - 2025-08-05
+
+- Added Print / Printf to xlog for further compatibility.
+
 ## [v0.2.0] - 2025-07-26
 
 Added:

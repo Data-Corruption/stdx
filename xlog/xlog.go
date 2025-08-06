@@ -197,6 +197,44 @@ func Infof(ctx context.Context, format string, v ...interface{}) {
 	}
 }
 
+// Print / Printf is a compatibility func that behaves like log.Print.
+
+func (l *Logger) Print(v ...interface{}) {
+	if l.isLevelEnabled(levelInfo) {
+		if err := l.info.Output(2, fmt.Sprint(v...)); err != nil {
+			log.Printf("logger: failed to write print log entry: %v", err)
+		}
+	}
+}
+
+func Print(ctx context.Context, v ...interface{}) {
+	if l := FromContext(ctx); l != nil {
+		if l.isLevelEnabled(levelInfo) {
+			if err := l.info.Output(2, fmt.Sprint(v...)); err != nil {
+				log.Printf("logger: failed to write print log entry: %v", err)
+			}
+		}
+	}
+}
+
+func (l *Logger) Printf(format string, v ...interface{}) {
+	if l.isLevelEnabled(levelInfo) {
+		if err := l.info.Output(2, fmt.Sprintf(format, v...)); err != nil {
+			log.Printf("logger: failed to write print log entry: %v", err)
+		}
+	}
+}
+
+func Printf(ctx context.Context, format string, v ...interface{}) {
+	if l := FromContext(ctx); l != nil {
+		if l.isLevelEnabled(levelInfo) {
+			if err := l.info.Output(2, fmt.Sprintf(format, v...)); err != nil {
+				log.Printf("logger: failed to write print log entry: %v", err)
+			}
+		}
+	}
+}
+
 func (l *Logger) Warn(v ...interface{}) {
 	if l.isLevelEnabled(levelWarn) {
 		if err := l.warn.Output(2, fmt.Sprint(v...)); err != nil {
