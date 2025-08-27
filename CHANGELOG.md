@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.4.0] - 2025-08-27
+
+Adds a new package, `xnet`, that provides a function to wait until the network is likely usable.
+
+The `Wait` function blocks until a non-loopback, UP interface has a global IP address and at least one probe succeeds.
+It includes default probes (Cloudflare DNS and example.com) and allows users to specify custom probes such as TCP addresses or domain names.
+It uses exponential backoff with jitter for retries.
+
 ## [v0.3.0] - 2025-08-05
 
 - Added Print / Printf to xlog for further compatibility.

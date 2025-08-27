@@ -208,6 +208,33 @@ Notes & Limitations:
 
 <br>
 
+### xnet
+
+Package `xnet` provides functions for networking.
+
+#### Features
+
+- **`Wait(ctx context.Context, timeout time.Duration, probes ...string error`**  
+  Blocks until "the network is probably usable" or ctx/timeout expires.
+
+#### Quick example
+
+```go
+package main
+
+import "github.com/Data-Corruption/stdx/xnet"
+
+func main() {
+  // wait up to 30s; succeed on any probe
+  _ = xnet.Wait(context.Background(), 30*time.Second)
+
+  // OR, if you want to target something closer to your needs:
+  // _ = xnet.Wait(ctx, 30*time.Second, "tcp:8.8.8.8:53", "dns:yourdomain.tld")
+}
+```
+
+<br>
+
 ### xterm/prompt
 
 Package `prompt` provides functions for asking interactive questions in the terminal.
