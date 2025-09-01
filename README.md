@@ -1,17 +1,11 @@
-# stdx
+# 🌰 stdx [![Go Reference](https://pkg.go.dev/badge/github.com/Data-Corruption/stdx.svg)](https://pkg.go.dev/github.com/Data-Corruption/stdx) [![Go Report Card](https://goreportcard.com/badge/github.com/Data-Corruption/stdx)](https://goreportcard.com/report/github.com/Data-Corruption/stdx) ![License](https://img.shields.io/github/license/Data-Corruption/stdx) [![Release](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml/badge.svg)](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml)
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/Data-Corruption/stdx.svg)](https://pkg.go.dev/github.com/Data-Corruption/stdx)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Data-Corruption/stdx)](https://goreportcard.com/report/github.com/Data-Corruption/stdx)
-![License](https://img.shields.io/github/license/Data-Corruption/stdx)
-[![Release](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml/badge.svg)](https://github.com/Data-Corruption/stdx/actions/workflows/release.yml)
-
-## Overview
-
-Production-hardened extensions for Go's standard library with zero dependencies. Built with a bias toward CLI tools doing web-adjacent work (standalone apps, APIs, wrappers, etc). It's the result from building many small, durable CLI apps. Just enough structure to ship fast, fail loudly, and stay maintainable under pressure. No dependencies. No magic. Just practical helpers that survive real use.
+Production-hardened extensions for Go's standard library. Built with a bias toward CLI tools doing web-adjacent work (standalone apps, APIs, wrappers, etc). It's the result from building many small, durable CLI apps. Just enough structure to ship fast, fail loudly, and stay maintainable under pressure. No dependencies. No magic. Just practical helpers for real use.
 
 - [`xhttp`](#xhttp): Production-ready HTTP server helpers
 - [`xlog`](#xlog): Structured leveled logging
 - [`xlog/rlog`](#xlogrlog): Buffered writer with rotation
+- [`xnet`](#xlogrlog): Miscellaneous network helpers.
 - [`xterm/prompt`](#xtermprompt): Interactive terminal prompts
 
 ## Installation
