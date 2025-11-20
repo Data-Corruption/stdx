@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.2] - 2025-11-19
+
+Changed:
+- throwing hands with staticcheck
+
 ## [v0.4.1] - 2025-11-19
 
 Changed:

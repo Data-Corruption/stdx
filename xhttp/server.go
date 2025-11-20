@@ -245,7 +245,7 @@ func (s *Server) Listen() error {
 // Uses the provided context to control cancellation and deadlines.
 // If the context is nil, it defaults to [ServerConfig.ShutdownTimeout].
 //
-//lint:ignore SA1012 nil ctx triggers default timeout
+//lint:file-ignore SA1012 nil ctx triggers default timeout
 func (s *Server) Shutdown(ctx context.Context) error {
 	if ctx == nil {
 		if s.cfg.ShutdownTimeout <= 0 {
