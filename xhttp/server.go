@@ -223,7 +223,7 @@ func (s *Server) Listen() error {
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
 			defer cancel()
-			return s.server.Shutdown(ctx) // shutdown causes listen to return [ErrServerClosed] immediately, no need to handle it.
+			return s.server.Shutdown(ctx) // blocks until all connections are closed or context times out
 		case err := <-listenErrCh:
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
 				if errors.Is(err, syscall.EADDRINUSE) {
@@ -244,6 +244,8 @@ func (s *Server) Listen() error {
 // Thread-safe, can be called from any goroutine.
 // Uses the provided context to control cancellation and deadlines.
 // If the context is nil, it defaults to [ServerConfig.ShutdownTimeout].
+//
+//lint:ignore SA1012 nil ctx triggers default timeout
 func (s *Server) Shutdown(ctx context.Context) error {
 	if ctx == nil {
 		if s.cfg.ShutdownTimeout <= 0 {
@@ -254,5 +256,5 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		defer cancel()
 	}
 
-	return s.server.Shutdown(ctx)
+	return s.server.Shutdown(ctx) // blocks until all connections are closed or context times out
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.1] - 2025-11-19
+
+Changed:
+- Improved comment clarity and removed false positive lint warning.
+
 ## [v0.4.0] - 2025-08-27
 
 Adds a new package, `xnet`, that provides a function to wait until the network is likely usable.
