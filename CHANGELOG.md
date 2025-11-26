@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.3] - 2025-11-25
+
+Changed:
+- Split server Shutdown into two functions, Shutdown and ShutdownWithContext. Avoiding the staticcheck warning and improving code clarity.
+
 ## [v0.4.2] - 2025-11-19
 
 Changed:

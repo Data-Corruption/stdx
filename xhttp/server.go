@@ -239,22 +239,26 @@ func (s *Server) Listen() error {
 	}
 }
 
-// Shutdown gracefully stops the server.
+// Shutdown gracefully stops the server, blocking until all connections are
+// closed or the provided context times out or is canceled.
 //
 // Thread-safe, can be called from any goroutine.
-// Uses the provided context to control cancellation and deadlines.
-// If the context is nil, it defaults to [ServerConfig.ShutdownTimeout].
-//
-//lint:file-ignore SA1012 nil ctx triggers default timeout
-func (s *Server) Shutdown(ctx context.Context) error {
+func (s *Server) ShutdownWithContext(ctx context.Context) error {
 	if ctx == nil {
-		if s.cfg.ShutdownTimeout <= 0 {
-			return s.server.Close()
-		}
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
-		defer cancel()
+		return fmt.Errorf("context is nil") // prevents panic when there are active connections / cleanup wait
 	}
+	return s.server.Shutdown(ctx) // blocks
+}
 
-	return s.server.Shutdown(ctx) // blocks until all connections are closed or context times out
+// Shutdown gracefully stops the server, blocking until all connections are
+// closed or the server's shutdown timeout is reached.
+//
+// Thread-safe, can be called from any goroutine.
+func (s *Server) Shutdown() error {
+	if s.cfg.ShutdownTimeout <= 0 {
+		return s.server.Close()
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
+	defer cancel()
+	return s.server.Shutdown(ctx) // blocks
 }
