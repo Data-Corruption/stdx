@@ -31,6 +31,8 @@ Package xhttp provides extensions to the standard net/http package for productio
   A custom error type for HTTP handlers that separates internal errors from client-safe messages.
 - **`Error(ctx context.Context, w http.ResponseWriter, err error)`**  
   A function to handle errors in HTTP handlers, logging them and sending appropriate HTTP responses. A drop-in replacement for `http.Error` that works with the `xlog` logger in the context if present.
+- **`ErrorJoined(ctx context.Context, w http.ResponseWriter, err error)`**  
+  Like `Error`, but joins the safe `Msg` values from all matching `xhttp.Err` values in the error tree into a single HTTP response body.
 
 #### Quick example
 
@@ -56,7 +58,9 @@ func main() {
   mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
     if err := riskyOperation(); err != nil {
       // Logs then sends either the safe message or "Internal Server Error" if
-      // not an xhttp.Err. Will also use xlog Logger if present in context
+      // not an xhttp.Err. Will also use xlog Logger if present in context.
+      // Use xhttp.ErrorJoined(...) if you want to aggregate multiple safe
+      // xhttp.Err messages from nested or joined errors.
       xhttp.Error(r.Context(), w, err)
       return
     }

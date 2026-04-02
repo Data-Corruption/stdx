@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.4] - 2026-04-01
+
+Added:
+- `xhttp.ErrorJoined`, which logs the original error and sends a response built from the joined safe `Msg` values of matching `xhttp.Err` values in the error tree.
+
 ## [v0.4.3] - 2025-11-25
 
 Changed:
